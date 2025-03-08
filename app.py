@@ -13,9 +13,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a professional look
+# Custom CSS for a pure white background with appropriate text colors
 st.markdown("""
 <style>
+    /* Global white background */
+    .stApp, .main, .block-container, .css-1d391kg, .stSidebar, .css-1wrcr25, .css-18e3th9, .css-1kyxreq {
+        background-color: white !important;
+    }
+    
+    /* Override all Streamlit containers to have white backgrounds */
+    div[data-testid="stVerticalBlock"], div[data-testid="stHorizontalBlock"], 
+    div[data-testid="stExpander"], div[data-testid="stMetric"], 
+    div[data-testid="stForm"], div[data-testid="stSelectbox"],
+    div[data-testid="stNumberInput"], div[data-testid="stButton"],
+    div[data-testid="stProgress"], div[data-testid="stMarkdown"] {
+        background-color: white !important;
+    }
+    
+    /* Text styling */
     .main-header {
         font-size: 2.5rem;
         color: #1E88E5;
@@ -43,8 +58,11 @@ st.markdown("""
         color: #2196F3;
         font-weight: bold;
     }
+    
+    /* Container styling with white background */
     .stat-container {
-        background-color: #f0f2f6;
+        background-color: white;
+        border: 1px solid #e0e0e0;
         border-radius: 10px;
         padding: 10px;
         margin: 10px 0;
@@ -59,21 +77,62 @@ st.markdown("""
         font-size: 0.8rem;
     }
     .help-box {
-        background-color: #E3F2FD;
+        background-color: white;
         border-left: 5px solid #2196F3;
         padding: 10px 15px;
         border-radius: 5px;
         margin: 10px 0;
     }
     .tip-box {
-        background-color: #E8F5E9;
+        background-color: white;
         border-left: 5px solid #4CAF50;
         padding: 10px 15px;
         border-radius: 5px;
         margin: 10px 0;
     }
-    .tab-content {
-        padding: 1rem 0;
+    
+    /* Override Streamlit's default styles */
+    .stButton>button {
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    .stProgress>div>div {
+        background-color: #4CAF50;
+    }
+    
+    /* Override expander styling */
+    .streamlit-expanderHeader {
+        background-color: white !important;
+        color: #333333 !important;
+    }
+    .streamlit-expanderContent {
+        background-color: white !important;
+    }
+    
+    /* Override sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: white !important;
+    }
+    
+    /* Override select slider */
+    div[data-testid="stSelectSlider"] {
+        background-color: white !important;
+    }
+    
+    /* Override info, error, success boxes but keep their border colors */
+    div.stAlert {
+        background-color: white !important;
+    }
+    
+    /* Make sure charts have white backgrounds */
+    .vega-embed {
+        background-color: white !important;
+    }
+    
+    /* Override any remaining elements */
+    * {
+        background-color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -261,7 +320,7 @@ if st.session_state.current_tab == "Game":
     # Game tab content
     if not st.session_state.game_active:
         st.markdown("""
-        <div style='text-align: center; padding: 2rem;'>
+        <div style='text-align: center; padding: 2rem; background-color: white; border: 1px solid #e0e0e0; border-radius: 10px;'>
             <span style='font-size: 4rem;'>🎲 🎯 🎮</span>
             <h2>Welcome to Number Master Pro!</h2>
             <p>Set your desired range and difficulty in the sidebar, then click "Start New Game" to begin.</p>
@@ -510,6 +569,11 @@ elif st.session_state.current_tab == "History":
                             title='Guess Progression',
                             width=500,
                             height=300
+                        ).configure_view(
+                            fill="white"
+                        ).configure_axis(
+                            labelColor="#333333",
+                            titleColor="#333333"
                         )
                         
                         # Add a horizontal line for the target
@@ -559,6 +623,11 @@ elif st.session_state.current_tab == "History":
                 title='Score Progression',
                 width=700,
                 height=300
+            ).configure_view(
+                fill="white"
+            ).configure_axis(
+                labelColor="#333333",
+                titleColor="#333333"
             )
             
             st.altair_chart(score_chart)
@@ -661,151 +730,165 @@ elif st.session_state.current_tab == "How to Play":
     - **Time Penalty:** Taking longer reduces your score
     - **Hint Penalty:** Each hint used reduces your score
     
-    The formula is:"
-    "Score = (Base Score) - (Attempt Penalty) - (Time Penalty) - (Hint Penalty)""
+    The formula is:
+    "Score = (Base Score) - (Attempt Penalty) - (Time Penalty) - (Hint Penalty)"
     
-Different difficulty levels have different hint penalties and maximum attempts.
-""")
+    Different difficulty levels have different hint penalties and maximum attempts.
+    """)
 
-# Ready to play button
-if st.button("I'm Ready to Play! 🚀", use_container_width=True):
-    change_tab("Game")
+    # Ready to play button
+    if st.button("I'm Ready to Play! 🚀", use_container_width=True):
+        change_tab("Game")
 
 elif st.session_state.current_tab == "Stats":
-# Stats tab content
+    # Stats tab content
+    st.markdown("<h2 class='sub-header'>Your Gaming Statistics 📈</h2>", unsafe_allow_html=True)
 
-  st.markdown("<h2 class='sub-header'>Your Gaming Statistics 📈</h2>", unsafe_allow_html=True)
-
-if not st.session_state.game_history:
-    st.info("You haven't played any games yet. Start playing to see your statistics!")
-else:
-    # Convert game history to DataFrame
-    history_df = pd.DataFrame(st.session_state.game_history)
-    
-    # Overall stats
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("Total Games", len(history_df))
-    with col2:
-        wins = (history_df['score'] > 0).sum()
-        st.metric("Games Won", wins)
-    with col3:
-        win_rate = (wins / len(history_df)) * 100
-        st.metric("Win Rate", f"{win_rate:.1f}%")
-    with col4:
-        avg_score = history_df['score'].mean()
-        st.metric("Avg. Score", f"{avg_score:.1f}")
-    
-    # More detailed stats
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("<h3>Attempt Statistics</h3>", unsafe_allow_html=True)
-        avg_attempts = history_df['attempts'].mean()
-        min_attempts = history_df['attempts'].min()
-        max_attempts = history_df['attempts'].max()
+    if not st.session_state.game_history:
+        st.info("You haven't played any games yet. Start playing to see your statistics!")
+    else:
+        # Convert game history to DataFrame
+        history_df = pd.DataFrame(st.session_state.game_history)
         
-        st.markdown(f"""
-        <div class='stat-container'>
-            <p><strong>Average Attempts:</strong> {avg_attempts:.1f}</p>
-            <p><strong>Best Game:</strong> {min_attempts} attempts</p>
-            <p><strong>Most Challenging Game:</strong> {max_attempts} attempts</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("<h3>Score Statistics</h3>", unsafe_allow_html=True)
-        high_score = history_df['score'].max()
-        recent_avg = history_df.iloc[-5:]['score'].mean() if len(history_df) >= 5 else history_df['score'].mean()
+        # Overall stats
+        col1, col2, col3, col4 = st.columns(4)
         
-        st.markdown(f"""
-        <div class='stat-container'>
-            <p><strong>High Score:</strong> {high_score}</p>
-            <p><strong>Recent Average (last 5 games):</strong> {recent_avg:.1f}</p>
-            <p><strong>Total Points Earned:</strong> {history_df['score'].sum()}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Visualizations
-    if len(history_df) >= 3:
-        # Add game number for tracking
-        history_df['game_number'] = range(1, len(history_df) + 1)
+        with col1:
+            st.metric("Total Games", len(history_df))
+        with col2:
+            wins = (history_df['score'] > 0).sum()
+            st.metric("Games Won", wins)
+        with col3:
+            win_rate = (wins / len(history_df)) * 100
+            st.metric("Win Rate", f"{win_rate:.1f}%")
+        with col4:
+            avg_score = history_df['score'].mean()
+            st.metric("Avg. Score", f"{avg_score:.1f}")
         
-        # Attempts distribution
-        st.markdown("<h3>Attempts Distribution</h3>", unsafe_allow_html=True)
-        attempts_chart = alt.Chart(history_df).mark_bar().encode(
-            x=alt.X('attempts:Q', bin=True, title='Number of Attempts'),
-            y=alt.Y('count()', title='Frequency')
-        ).properties(
-            title='Distribution of Attempts per Game',
-            width=700,
-            height=300
-        )
+        # More detailed stats
+        col1, col2 = st.columns(2)
         
-        st.altair_chart(attempts_chart)
+        with col1:
+            st.markdown("<h3>Attempt Statistics</h3>", unsafe_allow_html=True)
+            avg_attempts = history_df['attempts'].mean()
+            min_attempts = history_df['attempts'].min()
+            max_attempts = history_df['attempts'].max()
+            
+            st.markdown(f"""
+            <div class='stat-container'>
+                <p><strong>Average Attempts:</strong> {avg_attempts:.1f}</p>
+                <p><strong>Best Game:</strong> {min_attempts} attempts</p>
+                <p><strong>Most Challenging Game:</strong> {max_attempts} attempts</p>
+            </div>
+            """, unsafe_allow_html=True)
         
-        # Performance by difficulty
-        if 'difficulty' in history_df.columns:
-            st.markdown("<h3>Performance by Difficulty</h3>", unsafe_allow_html=True)
-            diff_chart = alt.Chart(history_df).mark_boxplot().encode(
-                x=alt.X('difficulty:N', title='Difficulty Level'),
-                y=alt.Y('score:Q', title='Score')
+        with col2:
+            st.markdown("<h3>Score Statistics</h3>", unsafe_allow_html=True)
+            high_score = history_df['score'].max()
+            recent_avg = history_df.iloc[-5:]['score'].mean() if len(history_df) >= 5 else history_df['score'].mean()
+            
+            st.markdown(f"""
+            <div class='stat-container'>
+                <p><strong>High Score:</strong> {high_score}</p>
+                <p><strong>Recent Average (last 5 games):</strong> {recent_avg:.1f}</p>
+                <p><strong>Total Points Earned:</strong> {history_df['score'].sum()}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Visualizations
+        if len(history_df) >= 3:
+            # Add game number for tracking
+            history_df['game_number'] = range(1, len(history_df) + 1)
+            
+            # Attempts distribution
+            st.markdown("<h3>Attempts Distribution</h3>", unsafe_allow_html=True)
+            attempts_chart = alt.Chart(history_df).mark_bar().encode(
+                x=alt.X('attempts:Q', bin=True, title='Number of Attempts'),
+                y=alt.Y('count()', title='Frequency')
             ).properties(
-                title='Score Distribution by Difficulty',
+                title='Distribution of Attempts per Game',
                 width=700,
                 height=300
+            ).configure_view(
+                fill="white"
+            ).configure_axis(
+                labelColor="#333333",
+                titleColor="#333333"
             )
             
-            st.altair_chart(diff_chart)
-        
-        # Learning curve
-        st.markdown("<h3>Your Learning Curve</h3>", unsafe_allow_html=True)
-        
-        # Calculate moving average
-        window_size = min(5, len(history_df))
-        history_df['moving_avg_attempts'] = history_df['attempts'].rolling(window=window_size).mean()
-        
-        learning_chart = alt.Chart(history_df).mark_line(point=True).encode(
-            x=alt.X('game_number:Q', title='Game Number'),
-            y=alt.Y('moving_avg_attempts:Q', title=f'{window_size}-Game Moving Average of Attempts')
-        ).properties(
-            title='Learning Curve (Lower is Better)',
-            width=700,
-            height=300
-        )
-        
-        st.altair_chart(learning_chart)
-        
-        # Achievement section
-        st.markdown("<h3>🏆 Achievements</h3>", unsafe_allow_html=True)
-        
-        achievements = []
-        
-        # Check for achievements
-        if len(history_df) >= 10:
-            achievements.append("🎮 Dedicated Player: Played 10+ games")
-        
-        if wins >= 5:
-            achievements.append("🏅 Winner: Won 5+ games")
-        
-        if win_rate >= 70:
-            achievements.append("🌟 Master Guesser: 70%+ win rate")
-        
-        if min_attempts <= 3:
-            achievements.append("🔍 Sharp Eye: Guessed correctly in 3 or fewer attempts")
-        
-        if high_score >= 500:
-            achievements.append("💯 High Scorer: Scored 500+ points in a single game")
-        
-        if 'hints_used' in history_df.columns and (history_df['hints_used'] == 0).any():
-            achievements.append("🧠 Pure Skill: Won a game without using hints")
-        
-        if not achievements:
-            achievements.append("Keep playing to unlock achievements!")
-        
-        for achievement in achievements:
-            st.markdown(f"<div class='stat-container success-text'>{achievement}</div>", unsafe_allow_html=True)
+            st.altair_chart(attempts_chart)
+            
+            # Performance by difficulty
+            if 'difficulty' in history_df.columns:
+                st.markdown("<h3>Performance by Difficulty</h3>", unsafe_allow_html=True)
+                diff_chart = alt.Chart(history_df).mark_boxplot().encode(
+                    x=alt.X('difficulty:N', title='Difficulty Level'),
+                    y=alt.Y('score:Q', title='Score')
+                ).properties(
+                    title='Score Distribution by Difficulty',
+                    width=700,
+                    height=300
+                ).configure_view(
+                    fill="white"
+                ).configure_axis(
+                    labelColor="#333333",
+                    titleColor="#333333"
+                )
+                
+                st.altair_chart(diff_chart)
+            
+            # Learning curve
+            st.markdown("<h3>Your Learning Curve</h3>", unsafe_allow_html=True)
+            
+            # Calculate moving average
+            window_size = min(5, len(history_df))
+            history_df['moving_avg_attempts'] = history_df['attempts'].rolling(window=window_size).mean()
+            
+            learning_chart = alt.Chart(history_df).mark_line(point=True).encode(
+                x=alt.X('game_number:Q', title='Game Number'),
+                y=alt.Y('moving_avg_attempts:Q', title=f'{window_size}-Game Moving Average of Attempts')
+            ).properties(
+                title='Learning Curve (Lower is Better)',
+                width=700,
+                height=300
+            ).configure_view(
+                fill="white"
+            ).configure_axis(
+                labelColor="#333333",
+                titleColor="#333333"
+            )
+            
+            st.altair_chart(learning_chart)
+            
+            # Achievement section
+            st.markdown("<h3>🏆 Achievements</h3>", unsafe_allow_html=True)
+            
+            achievements = []
+            
+            # Check for achievements
+            if len(history_df) >= 10:
+                achievements.append("🎮 Dedicated Player: Played 10+ games")
+            
+            if wins >= 5:
+                achievements.append("🏅 Winner: Won 5+ games")
+            
+            if win_rate >= 70:
+                achievements.append("🌟 Master Guesser: 70%+ win rate")
+            
+            if min_attempts <= 3:
+                achievements.append("🔍 Sharp Eye: Guessed correctly in 3 or fewer attempts")
+            
+            if high_score >= 500:
+                achievements.append("💯 High Scorer: Scored 500+ points in a single game")
+            
+            if 'hints_used' in history_df.columns and (history_df['hints_used'] == 0).any():
+                achievements.append("🧠 Pure Skill: Won a game without using hints")
+            
+            if not achievements:
+                achievements.append("Keep playing to unlock achievements!")
+            
+            for achievement in achievements:
+                st.markdown(f"<div class='stat-container success-text'>{achievement}</div>", unsafe_allow_html=True)
 
 # Footer
 st.markdown("""
